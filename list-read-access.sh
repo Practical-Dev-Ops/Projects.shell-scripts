@@ -3,23 +3,25 @@
 # GitHub API URL
 API_URL="https://api.github.com"
 
-# GitHub username and personal access token (make sure to set these environment variables)
-USERNAME=${username}
-TOKEN=${token}
+# GitHub username and personal access token from arguments
+USERNAME=$1
+TOKEN=$2
 
-# User and Repository information from arguments
-REPO_OWNER=$1
-REPO_NAME=$2
+# User and Repository information
+REPO_OWNER=$3
+REPO_NAME=$4
 
-# Check if USERNAME and TOKEN are set
+# Check if USERNAME and TOKEN are provided
 if [[ -z "$USERNAME" || -z "$TOKEN" ]]; then
-    echo "Error: Please set the GitHub username and personal access token."
+    echo "Error: Please provide the GitHub username and personal access token as the first two arguments."
+    echo "Usage: $0 <username> <token> <repo_owner> <repo_name>"
     exit 1
 fi
 
 # Check if REPO_OWNER and REPO_NAME are provided
 if [[ -z "$REPO_OWNER" || -z "$REPO_NAME" ]]; then
-    echo "Usage: $0 <repo_owner> <repo_name>"
+    echo "Error: Please provide the repository owner and repository name as the third and fourth arguments."
+    echo "Usage: $0 <username> <token> <repo_owner> <repo_name>"
     exit 1
 fi
 
@@ -30,6 +32,22 @@ function github_api_get {
 
     # Send a GET request to the GitHub API with authentication
     curl -s -u "${USERNAME}:${TOKEN}" "$url"
+}
+
+# Function to check if the provided credentials are correct
+function check_credentials {
+    local endpoint="user"
+
+    # Fetch the authenticated user's information
+    response=$(github_api_get "$endpoint")
+
+    # Check if the response contains a "login" field
+    if echo "$response" | jq -e '.login' > /dev/null 2>&1; then
+        echo "Authenticated successfully as $(echo "$response" | jq -r '.login')."
+    else
+        echo "Error: Authentication failed. Please check your username and token."
+        exit 1
+    fi
 }
 
 # Function to list users with read access to the repository
@@ -49,5 +67,6 @@ function list_users_with_read_access {
 }
 
 # Main script
+check_credentials
 echo "Listing users with read access to ${REPO_OWNER}/${REPO_NAME}..."
 list_users_with_read_access
