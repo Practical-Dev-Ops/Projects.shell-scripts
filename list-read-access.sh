@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# About: List read access script
+# Author: SDolaide
+# Date: 4th July 2024
+# This script would list users with only read access to a GitHub repository. A user need to provide username, token,  repo owner and repo.
+
 # GitHub API URL
 API_URL="https://api.github.com"
 
